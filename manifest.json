@@ -1,11 +1,11 @@
 {
-	"id": "obsidian-chatgpt",
+	"id": "obsidian-chatgpt-ml",
 	"name": "Obsidian ChatGPT",
 	"version": "1.0.0",
 	"minAppVersion": "0.15.0",
 	"description": "Adds some ChatGPT features",
 	"author": "Marc Langer",
 	"authorUrl": "http://marc-langer.de",
-	"fundingUrl": "https://obsidian.md/pricing",
+	"fundingUrl": "https://www.paypal.me/MarcGerrit",
 	"isDesktopOnly": false
 }

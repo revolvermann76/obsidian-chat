@@ -8,7 +8,7 @@ const copyPlugin = () => ({
 	setup(build) {
 		build.onEnd(async () => {
 			const pathIn = "./";
-			const pathOut = "/home/marc/zettelkasten/.obsidian/plugins/obsidian-chatgpt/"
+			const pathOut = "/home/marc/zettelkasten/.obsidian/plugins/obsidian-chatgpt-ml/"
 			const files = [
 				"manifest.json",
 				"main.js",
