@@ -1,6 +1,30 @@
 import esbuild from "esbuild";
 import process from "process";
 import builtins from "builtin-modules";
+import fs from 'fs';
+
+const copyPlugin = () => ({
+	name: 'copy-plugin',
+	setup(build) {
+		build.onEnd(async () => {
+			const pathIn = "./";
+			const pathOut = "/home/marc/zettelkasten/.obsidian/plugins/obsidian-chatgpt/"
+			const files = [
+				"manifest.json",
+				"main.js",
+				"styles.css"
+			];
+			for (let i = 0; i < files.length; i++) {
+				try {
+					console.log(pathIn + files[i], pathOut + files[i]);
+					fs.copyFileSync(pathIn + files[i], pathOut + files[i]);
+				} catch (e) {
+					console.error('Failed to copy file:', e);
+				}
+			}
+		});
+	},
+});
 
 const banner =
 `/*
@@ -38,6 +62,9 @@ const context = await esbuild.context({
 	sourcemap: prod ? false : "inline",
 	treeShaking: true,
 	outfile: "main.js",
+	plugins: [
+		copyPlugin()
+	],
 });
 
 if (prod) {
