@@ -1,4 +1,4 @@
-import * as Chat from 'Chat';
+import { RequestModal } from 'RequestModal';
 import * as Obsidian from 'obsidian';
 
 interface ChatPluginSettings {
@@ -11,12 +11,9 @@ const DEFAULT_SETTINGS: ChatPluginSettings = {
 
 export default class ChatPlugin extends Obsidian.Plugin {
 	settings: ChatPluginSettings;
-	chat: Chat.Chat;
 	async onload() {
 		await this.loadSettings();
-		this.chat = new Chat.Chat({
-			apiKey: this.settings.apiKey
-		});
+
 /*
 
 		// This creates an icon in the left ribbon.
@@ -72,7 +69,7 @@ export default class ChatPlugin extends Obsidian.Plugin {
 			id: 'chat-request',
 			name: 'Request',
 			callback: () => {
-				new RequestModal(this.app).open();
+				new RequestModal(this.app, this.settings.apiKey).open();
 			}
 		});
 
@@ -95,67 +92,7 @@ export default class ChatPlugin extends Obsidian.Plugin {
 }
 
 
-
-class MultiSuggest extends Obsidian.AbstractInputSuggest<string> {
-	content: Set<string>;
-
-	constructor(private inputEl: HTMLInputElement, private onSelectCb: (value: string) => void, app: Obsidian.App, content = new Set<string>([])) {
-		super(app, inputEl);
-		this.content = content;
-		this.inputEl.addEventListener("keydown", (ev: KeyboardEvent) => {
-			if (ev.key === "Enter") {
-				this.selectSuggestion(this.inputEl.value, ev);
-			}
-		})
-	}
-
-	setContent(content: Set<string>) {
-		this.content = content;
-	}
-
-	getSuggestions(inputStr: string): string[] {
-		const lowerCaseInputStr = inputStr.toLocaleLowerCase();
-		return [...this.content].filter((content) =>
-			content.toLocaleLowerCase().contains(lowerCaseInputStr)
-		);
-	}
-
-	renderSuggestion(content: string, el: HTMLElement): void {
-		el.setText(content);
-	}
-
-	selectSuggestion(content: string, evt: MouseEvent | KeyboardEvent): void {
-		this.inputEl.value = content;
-		this.onSelectCb(content);
-		this.inputEl.blur()
-		this.close();
-	}
-
-}
-
-class RequestModal extends Obsidian.Modal {
-
-	constructor(app: Obsidian.App) {
-		super(app);
-		this.modalEl.addClass("chat-request-modal");
-		const d = document.createElement("div");
-		const promptInput = document.createElement("input");
-		const ms = new MultiSuggest(promptInput, (value: string) => { alert(value) }, app);
-		ms.setContent(new Set<string>(["Lirum", "Larum"]))
-		d.appendChild(promptInput);
-		this.contentEl.appendChild(d);
-	}
-
-	onOpen() {
-
-	}
-
-	onClose() {
-		this.contentEl.empty();
-	}
-}
-
-class ChatSettingTab extends Obsidian.PluginSettingTab {
+export class ChatSettingTab extends Obsidian.PluginSettingTab {
 	plugin: ChatPlugin;
 
 	constructor(app: Obsidian.App, plugin: ChatPlugin) {
