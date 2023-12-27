@@ -69,10 +69,10 @@ export default class ChatPlugin extends Obsidian.Plugin {
 		*/
 		// This adds a simple command that can be triggered anywhere
 		this.addCommand({
-			id: 'chat-open-sample-modal-simple',
-			name: 'Chat open modal',
+			id: 'chat-request',
+			name: 'Request',
 			callback: () => {
-				new SampleModal(this.app).open();
+				new RequestModal(this.app).open();
 			}
 		});
 
@@ -94,22 +94,64 @@ export default class ChatPlugin extends Obsidian.Plugin {
 	}
 }
 
-class SampleModal extends Obsidian.Modal {
+
+
+class MultiSuggest extends Obsidian.AbstractInputSuggest<string> {
+	content: Set<string>;
+
+	constructor(private inputEl: HTMLInputElement, private onSelectCb: (value: string) => void, app: Obsidian.App, content = new Set<string>([])) {
+		super(app, inputEl);
+		this.content = content;
+		this.inputEl.addEventListener("keydown", (ev: KeyboardEvent) => {
+			if (ev.key === "Enter") {
+				this.selectSuggestion(this.inputEl.value, ev);
+			}
+		})
+	}
+
+	setContent(content: Set<string>) {
+		this.content = content;
+	}
+
+	getSuggestions(inputStr: string): string[] {
+		const lowerCaseInputStr = inputStr.toLocaleLowerCase();
+		return [...this.content].filter((content) =>
+			content.toLocaleLowerCase().contains(lowerCaseInputStr)
+		);
+	}
+
+	renderSuggestion(content: string, el: HTMLElement): void {
+		el.setText(content);
+	}
+
+	selectSuggestion(content: string, evt: MouseEvent | KeyboardEvent): void {
+		this.inputEl.value = content;
+		this.onSelectCb(content);
+		this.inputEl.blur()
+		this.close();
+	}
+
+}
+
+class RequestModal extends Obsidian.Modal {
+
 	constructor(app: Obsidian.App) {
 		super(app);
+		this.modalEl.addClass("chat-request-modal");
+		const d = document.createElement("div");
+		const promptInput = document.createElement("input");
+		const ms = new MultiSuggest(promptInput, (value: string) => { alert(value) }, app);
+		ms.setContent(new Set<string>(["Lirum", "Larum"]))
+		d.appendChild(promptInput);
+		this.contentEl.appendChild(d);
 	}
 
 	onOpen() {
-		const {contentEl} = this;
-		const { modalEl } = this;
-		modalEl.addClass("whatever");
-		const d = document.createElement("div");
-		contentEl.appendChild(d);
+
 	}
 
 	onClose() {
-		const {contentEl} = this;
-		contentEl.empty();
+		this.contentEl.empty();
 	}
 }
 
