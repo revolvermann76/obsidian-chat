@@ -1,22 +1,26 @@
 import { Chat, TUtterance } from "Chat";
 import { MultiSuggest } from "MultiSuggest";
+import { md2html } from "md2html";
 import { Modal, App, ButtonComponent } from "obsidian"
+
 export class RequestModal extends Modal {
 
     #chat: Chat;
     #resultCnt: HTMLDivElement;
     #promptInput: HTMLInputElement;
+    #copiedToClipboard = false;
 
     constructor(app: App, apiKey: string) {
         super(app);
 
         this.#chat = new Chat({
-            apiKey: apiKey
+            apiKey: apiKey,
+            system: "Be a helpful assistent.",
+            temperature: 0.3
         })
 
         this.titleEl.innerHTML = "Chat conversation";
         this.modalEl.addClass("chat-request-modal");
-
 
         // Prompt input
         this.#promptInput = document.createElement("input");
@@ -48,7 +52,10 @@ export class RequestModal extends Modal {
         })
 
         new ButtonComponent(buttonCnt).setButtonText("Copy Response").setClass("chat-copy-button").onClick(() => {
-            console.log(this.#chat.conversation.pop()?.content);
+            const value = this.#chat.conversation.pop()?.content;
+            console.log(value);
+            navigator.clipboard.writeText(value || "");
+            this.#copiedToClipboard = true;
             this.close();
         })
         new ButtonComponent(buttonCnt).setButtonText("Copy Conversation").setClass("chat-copy-all-button").onClick(() => {
@@ -63,7 +70,10 @@ export class RequestModal extends Modal {
                     lines.push(`**${u.content}**`);
                 }
             }
-            console.log(lines.join("\n"));
+            const value = lines.join("\n")
+            console.log(value);
+            navigator.clipboard.writeText(value || "");
+            this.#copiedToClipboard = true;
             this.close();
         })
 
@@ -83,11 +93,11 @@ export class RequestModal extends Modal {
         this.#resultCnt.appendChild(div);
         this.#chat.stream(prompt, {
             partHandler: (part) => {
-                div.innerHTML = part;
+                div.innerHTML = md2html(part);
                 this.#scrollDown();
             }
         }).then((result) => {
-            div.innerHTML = result;
+            div.innerHTML = md2html(result);
             this.#scrollDown();
             this.#promptInput.focus();
         })
@@ -98,6 +108,10 @@ export class RequestModal extends Modal {
     }
 
     onClose() {
+        if (!this.#copiedToClipboard) {
+            const value = this.#chat.conversation.pop()?.content;
+            navigator.clipboard.writeText(value || "");
+        }
         this.contentEl.empty();
     }
 }

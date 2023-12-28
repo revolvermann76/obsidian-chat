@@ -18,6 +18,70 @@ div.modal.chat-request-modal div.chat-result-container {
     overflow-y: auto;
 }
 
+
+
+div.modal.chat-request-modal div.chat-result-container code {
+    background: var(--background-dark);
+    color: var(--text-normal);
+    border-color: var(--text-muted);
+    border-radius: 6px;
+    padding: 2px;
+}
+
+div.modal.chat-request-modal div.chat-result-container pre {
+    background: var(--background-dark);
+    margin: 12px;
+    border-color: var(--text-muted);
+    padding: 20px 12px;
+    border-radius: 6px;
+}
+
+div.modal.chat-request-modal div.chat-result-container pre:hover button {
+    display: block;
+}
+
+div.modal.chat-request-modal div.chat-result-container pre button {
+    display: none;
+    position: relative;
+    float: right;
+    top: -16px
+}
+
+div.modal.chat-request-modal div.chat-result-container blockquote {
+    background: #f0f0f0;
+    border-left: 6px solid grey;
+    padding: 8px
+}
+
+div.modal.chat-request-modal div.chat-result-container table {
+    margin: 12px;
+    border-collapse: collapse;
+}
+
+div.modal.chat-request-modal div.chat-result-container th {
+    border: 1px solid grey;
+    background: var(--background-modifier-border);
+    padding: 6px;
+}
+
+div.modal.chat-request-modal div.chat-result-container td {
+    border: 1px solid grey;
+    padding: 6px;
+}
+
+div.modal.chat-request-modal div.chat-result-container tr:nth-child(even) {
+    background: var(--background-primary-alt);
+}
+
+div.modal.chat-request-modal div.chat-result-container ins {
+    color: #890604
+}
+
+div.modal.chat-request-modal div.chat-result-container rem {
+    color: #198964
+}
+
+
 div.modal.chat-request-modal div.chat-result-container div.response {
     margin-bottom: 1rem;
 }
