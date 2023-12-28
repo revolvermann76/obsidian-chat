@@ -5,6 +5,7 @@ div.modal.chat-request-modal {
 
 div.modal.chat-request-modal div.modal-content {
     position: relative;
+    height: calc(100% - 110px);
 }
 
 div.modal.chat-request-modal div.chat-result-container {
@@ -12,6 +13,13 @@ div.modal.chat-request-modal div.chat-result-container {
     border: 1px solid var(--tab-outline-color);
     min-height: 100px;
     height: calc(100% - 110px);
+    padding: 1rem;
+    border-radius: 10px;
+    overflow-y: auto;
+}
+
+div.modal.chat-request-modal div.chat-result-container div.response {
+    margin-bottom: 1rem;
 }
 
 div.modal.chat-request-modal .chat-button-container {
