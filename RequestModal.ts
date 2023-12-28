@@ -1,7 +1,9 @@
 import { Chat, TUtterance } from "Chat";
 import { MultiSuggest } from "MultiSuggest";
 import { md2html } from "md2html";
-import { Modal, App, ButtonComponent } from "obsidian"
+import { Modal, App, ButtonComponent } from "obsidian";
+import { getSelection } from "getSelection";
+import { getFileName } from "getFileName";
 
 export class RequestModal extends Modal {
 
@@ -9,6 +11,9 @@ export class RequestModal extends Modal {
     #resultCnt: HTMLDivElement;
     #promptInput: HTMLInputElement;
     #copiedToClipboard = false;
+
+    #selection: string;
+    #fileName: string;
 
     constructor(app: App, apiKey: string) {
         super(app);
@@ -18,6 +23,18 @@ export class RequestModal extends Modal {
             system: "Be a helpful assistent.",
             temperature: 0.3
         })
+
+        try {
+            getSelection(app).then((s) => {
+                if (s) {
+                    this.#selection = s;
+                }
+            })
+        } catch (error) {
+            // console.error(error)
+        }
+
+        this.#fileName = getFileName(app);
 
         this.titleEl.innerHTML = "Chat conversation";
         this.modalEl.addClass("chat-request-modal");
@@ -29,6 +46,24 @@ export class RequestModal extends Modal {
         const ms = new MultiSuggest(this.#promptInput, this.onRequest.bind(this), app);
         ms.setContent(new Set(["Lirum", "Larum", "Bla blubbb"]))
         this.contentEl.appendChild(this.#promptInput);
+
+        // Placeholder
+        const placeholderList = ["filename", "selection"]
+        const placeholder = document.createElement("div");
+        placeholder.addClass('placeholder');
+        for (let i = 0; i < placeholderList.length; i++) {
+            let span = document.createElement("span");
+            span.innerHTML = placeholderList[i];
+
+            span.addEventListener("click", (e) => {
+                let ph = (e.target! as HTMLElement).getText();
+                this.#promptInput.value = this.#promptInput.value + " {" + ph + "} ";
+                this.#promptInput.focus();
+            })
+
+            placeholder.appendChild(span);
+        }
+        this.contentEl.appendChild(placeholder);
 
         // Result
         this.#resultCnt = document.createElement("div");
@@ -58,6 +93,7 @@ export class RequestModal extends Modal {
             this.#copiedToClipboard = true;
             this.close();
         })
+
         new ButtonComponent(buttonCnt).setButtonText("Copy Conversation").setClass("chat-copy-all-button").onClick(() => {
             let lines: string[] = [];
             const c = this.#chat.conversation;
@@ -86,18 +122,23 @@ export class RequestModal extends Modal {
     onRequest(prompt: string) {
         const h = document.createElement("div");
         h.addClass("cm-strong");
-        h.innerHTML = prompt;
+        h.innerHTML = prompt.replaceAll("{filename}", this.#fileName);
         this.#resultCnt.appendChild(h);
         const div = document.createElement("div");
         div.addClass("response");
         this.#resultCnt.appendChild(div);
-        this.#chat.stream(prompt, {
+
+        this.#chat.stream(prompt.replaceAll("{selection}", this.#selection).replaceAll("{filename}", this.#fileName), {
             partHandler: (part) => {
                 div.innerHTML = md2html(part);
                 this.#scrollDown();
             }
         }).then((result) => {
             div.innerHTML = md2html(result);
+            this.#scrollDown();
+            this.#promptInput.focus();
+        }, (error: Error) => {
+            div.innerHTML = error.message;
             this.#scrollDown();
             this.#promptInput.focus();
         })

@@ -5,20 +5,23 @@ div.modal.chat-request-modal {
 
 div.modal.chat-request-modal div.modal-content {
     position: relative;
-    height: calc(100% - 110px);
+    height: calc(100% - 140px);
 }
 
 div.modal.chat-request-modal div.chat-result-container {
     background-color: var(--background-dark);
     border: 1px solid var(--tab-outline-color);
     min-height: 100px;
-    height: calc(100% - 110px);
+    height: calc(100% - 150px);
     padding: 1rem;
     border-radius: 10px;
     overflow-y: auto;
 }
 
-
+div.modal.chat-request-modal div.chat-result-container .cm-strong {
+    margin-bottom: 0.5rem;
+    color: var(--text-accent);
+}
 
 div.modal.chat-request-modal div.chat-result-container code {
     background: var(--background-dark);
@@ -96,4 +99,24 @@ div.modal.chat-request-modal .chat-button-container .chat-copy-all-button,
 div.modal.chat-request-modal .chat-button-container .chat-copy-button {
     float: right;
     margin-left: 1rem;
+}
+
+div.modal.chat-request-modal .chat-button-container .chat-stop-button {
+    margin-right: 1rem;
+}
+
+
+div.modal.chat-request-modal div.modal-content div.placeholder {
+    margin-bottom: 10px;
+    margin-top: 10px;
+}
+
+div.modal.chat-request-modal div.modal-content div.placeholder>span {
+    padding: 5px;
+    color: var(--text-faint);
+}
+
+div.modal.chat-request-modal div.modal-content div.placeholder>span:hover {
+    padding: 5px;
+    color: var(--text-normal);
 }
