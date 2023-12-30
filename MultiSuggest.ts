@@ -4,13 +4,13 @@ export class MultiSuggest extends AbstractInputSuggest<string> {
 
     #minimalInputLength = 1;
 
-    constructor(private inputEl: HTMLInputElement, private onSelectCb: (value: string) => void, app: App, content = new Set<string>([])) {
+    constructor(private inputEl: HTMLInputElement, private onSelectCb: (value: string, list: boolean) => void, app: App, content = new Set<string>([])) {
         super(app, inputEl);
         this.content = content;
         this.limit = 10;
         this.inputEl.addEventListener("keydown", (ev: KeyboardEvent) => {
             if (ev.key === "Enter") {
-                this.selectSuggestion(this.inputEl.value, ev);
+                this.onSelectCb(this.inputEl.value, false);
             }
         })
     }
@@ -39,7 +39,7 @@ export class MultiSuggest extends AbstractInputSuggest<string> {
 
     selectSuggestion(content: string, evt: MouseEvent | KeyboardEvent): void {
         this.inputEl.value = "";
-        this.onSelectCb(content);
+        this.onSelectCb(content, true);
         this.inputEl.blur()
         this.close();
     }

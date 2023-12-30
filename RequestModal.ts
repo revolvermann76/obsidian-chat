@@ -4,6 +4,7 @@ import { md2html } from "md2html";
 import { Modal, App, ButtonComponent } from "obsidian";
 import { getSelection } from "getSelection";
 import { getFileName } from "getFileName";
+import { ChatPluginSettings } from "main";
 
 export class RequestModal extends Modal {
 
@@ -14,12 +15,14 @@ export class RequestModal extends Modal {
 
     #selection: string;
     #fileName: string;
+    #settings: ChatPluginSettings
 
-    constructor(app: App, apiKey: string) {
+    constructor(app: App, settings: ChatPluginSettings) {
         super(app);
 
+        this.#settings = settings;
         this.#chat = new Chat({
-            apiKey: apiKey,
+            apiKey: settings.apiKey,
             system: "Be a helpful assistent.",
             temperature: 0.3
         })
@@ -44,7 +47,7 @@ export class RequestModal extends Modal {
         this.#promptInput.addClass("prompt-input");
         this.#promptInput.setAttribute("placeholder", "Type your request here ...")
         const ms = new MultiSuggest(this.#promptInput, this.onRequest.bind(this), app);
-        ms.setContent(new Set(["Lirum", "Larum", "Bla blubbb"]))
+        ms.setContent(new Set(Object.keys(settings.presets)));
         this.contentEl.appendChild(this.#promptInput);
 
         // Placeholder
@@ -119,26 +122,42 @@ export class RequestModal extends Modal {
         this.#resultCnt.scrollTo(0, this.#resultCnt.scrollHeight);
     }
 
-    onRequest(prompt: string) {
+    onRequest(prompt: string, list: boolean) {
+        this.#promptInput.value = "";
+
+        if (list && this.#settings.presets[prompt]) {
+            let preset = this.#settings.presets[prompt];
+            this.#chat = new Chat({
+                temperature: preset.temperature || 0.5,
+                apiKey: this.#settings.apiKey,
+                system: preset.system
+            })
+            this.titleEl.innerHTML = prompt;
+            this.#resultCnt.empty();
+            this.#promptInput.focus();
+            return;
+        }
+
+
         const h = document.createElement("div");
         h.addClass("cm-strong");
         h.innerHTML = prompt.replaceAll("{filename}", this.#fileName);
         this.#resultCnt.appendChild(h);
-        const div = document.createElement("div");
-        div.addClass("response");
-        this.#resultCnt.appendChild(div);
+        const responseDiv = document.createElement("div");
+        responseDiv.addClass("response");
+        this.#resultCnt.appendChild(responseDiv);
 
         this.#chat.stream(prompt.replaceAll("{selection}", this.#selection).replaceAll("{filename}", this.#fileName), {
             partHandler: (part) => {
-                div.innerHTML = md2html(part);
+                responseDiv.innerHTML = md2html(part);
                 this.#scrollDown();
             }
         }).then((result) => {
-            div.innerHTML = md2html(result);
+            responseDiv.innerHTML = md2html(result);
             this.#scrollDown();
             this.#promptInput.focus();
         }, (error: Error) => {
-            div.innerHTML = error.message;
+            responseDiv.innerHTML = error.message;
             this.#scrollDown();
             this.#promptInput.focus();
         })

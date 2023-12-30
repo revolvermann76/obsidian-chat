@@ -142,6 +142,7 @@ export class Chat {
         }
 
         const signal: AbortSignal = this.#abortController.signal;
+        let result = ""; // the concatenated result
         try {
             // do the request
             const response = await fetch(
@@ -167,7 +168,7 @@ export class Chat {
 
             const reader = response.body!.getReader();
             const decoder = new TextDecoder("utf-8");
-            let result = ""; // the concatenated result
+
             let buffer = "";
             while (true) {
                 const { done, value } = await reader.read();
@@ -216,6 +217,14 @@ export class Chat {
             // all done, resolve with the result
             return result;
         } catch (error) {
+            if (error.message === "The user aborted a request.") {
+                // append to the conversation
+                this.#conversation.push({
+                    role: "assistant",
+                    content: result
+                })
+                return result;
+            }
             throw error;
         }
 
