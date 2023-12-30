@@ -138,11 +138,11 @@ export class RequestModal extends Modal {
             return;
         }
 
-
         const h = document.createElement("div");
         h.addClass("cm-strong");
         h.innerHTML = prompt.replaceAll("{filename}", this.#fileName);
         this.#resultCnt.appendChild(h);
+
         const responseDiv = document.createElement("div");
         responseDiv.addClass("response");
         this.#resultCnt.appendChild(responseDiv);

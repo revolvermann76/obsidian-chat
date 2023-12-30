@@ -120,3 +120,17 @@ div.modal.chat-request-modal div.modal-content div.placeholder>span:hover {
     padding: 5px;
     color: var(--text-normal);
 }
+
+div.setting-item.chat-prompt textarea {
+    resize: none;
+}
+
+div.chat-prompt-button-cnt {
+    margin-top: 1rem;
+    display: flex;
+    flex-direction: row-reverse;
+}
+
+div.chat-prompt-button-cnt button {
+    margin-left: 1rem;
+}
