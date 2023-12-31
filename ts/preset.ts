@@ -1,4 +1,4 @@
-import { TTemperature } from "Chat"
+import { TTemperature } from "ts/Chat"
 
 export type TPreset = {
     temperature: TTemperature;

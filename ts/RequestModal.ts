@@ -1,9 +1,9 @@
-import { Chat, TUtterance } from "Chat";
-import { MultiSuggest } from "MultiSuggest";
-import { md2html } from "md2html";
-import { Modal, App, ButtonComponent } from "obsidian";
-import { getSelection } from "getSelection";
-import { getFileName } from "getFileName";
+import { Chat, TUtterance } from "ts/Chat";
+import { MultiSuggest } from "./MultiSuggest";
+import { md2html } from "./md2html";
+import { Modal, App, ButtonComponent, Notice } from "obsidian";
+import { getSelection } from "./getSelection";
+import { getFileName } from "./getFileName";
 import { ChatPluginSettings } from "main";
 
 export class RequestModal extends Modal {
@@ -95,6 +95,7 @@ export class RequestModal extends Modal {
             navigator.clipboard.writeText(value || "");
             this.#copiedToClipboard = true;
             this.close();
+            new Notice("Copied response to clipboard.");
         })
 
         new ButtonComponent(buttonCnt).setButtonText("Copy Conversation").setClass("chat-copy-all-button").onClick(() => {
@@ -114,6 +115,7 @@ export class RequestModal extends Modal {
             navigator.clipboard.writeText(value || "");
             this.#copiedToClipboard = true;
             this.close();
+            new Notice("Copied conversation to clipboard.");
         })
 
     }

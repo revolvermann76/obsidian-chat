@@ -1,6 +1,7 @@
-import { RequestModal } from 'RequestModal';
+import { RequestModal } from './ts/RequestModal';
 import * as Obsidian from 'obsidian';
-import { TPreset, presets } from 'preset';
+import { TPreset, presets } from './ts/preset';
+import { MultiSuggest } from 'ts/MultiSuggest';
 
 export interface ChatPluginSettings {
 	apiKey: string;
@@ -47,11 +48,11 @@ export default class ChatPlugin extends Obsidian.Plugin {
 
 
 export class ChatSettingTab extends Obsidian.PluginSettingTab {
-	plugin: ChatPlugin;
+	#plugin: ChatPlugin;
 
 	constructor(app: Obsidian.App, plugin: ChatPlugin) {
 		super(app, plugin);
-		this.plugin = plugin;
+		this.#plugin = plugin;
 	}
 
 	display(): void {
@@ -68,10 +69,10 @@ export class ChatSettingTab extends Obsidian.PluginSettingTab {
 			.setDesc('')
 			.addText(text => text
 				.setPlaceholder('Enter your secret')
-				.setValue(this.plugin.settings.apiKey)
+				.setValue(this.#plugin.settings.apiKey)
 				.onChange(async (value) => {
-					this.plugin.settings.apiKey = value;
-					await this.plugin.saveSettings();
+					this.#plugin.settings.apiKey = value;
+					await this.#plugin.saveSettings();
 				})
 			);
 
@@ -88,7 +89,7 @@ export class ChatSettingTab extends Obsidian.PluginSettingTab {
 				.setPlaceholder('Pick a meaningful name')
 			);
 		const nameInput: HTMLInputElement = nameSetting.controlEl.children[0] as HTMLInputElement;
-		nameInput.value = "Whatever";
+		nameInput.value = "";
 
 
 		const temperatureSetting = new Obsidian.Setting(containerEl)
@@ -105,7 +106,7 @@ export class ChatSettingTab extends Obsidian.PluginSettingTab {
 		temperatureInput.value = "25";
 
 
-		new Obsidian.Setting(containerEl)
+		const promptSetting = new Obsidian.Setting(containerEl)
 			.setName('Prompt')
 			.setDesc('')
 			.setClass('chat-prompt')
@@ -117,12 +118,66 @@ export class ChatSettingTab extends Obsidian.PluginSettingTab {
 
 			});
 
+		const promptTextarea = promptSetting.settingEl.querySelector("textarea")!;
+
 		let div = document.createElement('div');
 		div.addClass("chat-prompt-button-cnt");
 		containerEl.appendChild(div);
 
-		new Obsidian.ButtonComponent(div).setButtonText("Save Preset").setCta()
-		new Obsidian.ButtonComponent(div).setButtonText("Delete Preset").setCta().setWarning()
+		const ms = new MultiSuggest(
+			nameInput,
+			(item: string, list: boolean) => {
+				if (!list) {
+					return;
+				}
+				nameInput.value = item;
+				promptTextarea.value = this.#plugin.settings.presets[item].system;
+				temperatureInput.value = "" + Math.floor((this.#plugin.settings.presets[item].temperature || 0.5) * 100);
+			},
+			this.app
+		);
 
+		ms.setContent(new Set(Object.keys(this.#plugin.settings.presets)));
+
+
+		new Obsidian.ButtonComponent(div)
+			.setButtonText("Save Preset")
+			.setCta()
+			.onClick(() => {
+				const name = nameInput.value;
+				const temperature = parseInt(temperatureInput.value || "50") / 100;
+				const prompt = promptTextarea.value;
+				if (!name) { return; }
+				this.#plugin.settings.presets[name] = {
+					temperature: temperature,
+					system: prompt
+				}
+				new Obsidian.Notice("Saved the preset " + name);
+				ms.setContent(new Set(Object.keys(this.#plugin.settings.presets)));
+				this.#plugin.saveSettings();
+
+			});
+
+		new Obsidian.ButtonComponent(div)
+			.setButtonText("Delete Preset")
+			.setCta()
+			.setWarning()
+			.onClick(() => {
+				const name = nameInput.value;
+				if (
+					!name ||
+					name === "chat conversation" ||
+					!this.#plugin.settings.presets[name]
+				) {
+					return;
+				}
+				delete this.#plugin.settings.presets[name];
+				nameInput.value = "";
+				temperatureInput.value = "50";
+				promptTextarea.value = "";
+				ms.setContent(new Set(Object.keys(this.#plugin.settings.presets)));
+				this.#plugin.saveSettings();
+				new Obsidian.Notice("Deleted the preset " + name);
+			});
 	}
 }
