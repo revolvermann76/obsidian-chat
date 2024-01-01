@@ -6,14 +6,14 @@ import { MultiSuggest } from 'ts/MultiSuggest';
 export interface ChatPluginSettings {
 	apiKey: string;
 	presets: { [key: string]: TPreset };
-	saveCoversation: boolean;
+	saveConversation: boolean;
 	saveConversationPath: string;
 }
 
 const DEFAULT_SETTINGS: ChatPluginSettings = {
 	apiKey: 'default',
 	presets: presets,
-	saveCoversation: false,
+	saveConversation: false,
 	saveConversationPath: 'chats'
 }
 
@@ -68,7 +68,6 @@ export class ChatSettingTab extends Obsidian.PluginSettingTab {
 		h1.innerHTML = "General settings";
 		containerEl.appendChild(h1);
 
-		let pathSetting: Obsidian.Setting;
 		new Obsidian.Setting(containerEl)
 			.setName('API Key')
 			.setDesc('')
@@ -82,18 +81,29 @@ export class ChatSettingTab extends Obsidian.PluginSettingTab {
 			);
 
 
+		let pathSetting: Obsidian.Setting;
 		new Obsidian.Setting(containerEl)
 			.setName('Save conversations')
-			.addToggle(function (toggleElem) {
-				toggleElem.onChange((e) => {
-					const saveConv = toggleElem.getValue();
-					pathSetting.settingEl.toggleVisibility(saveConv)
+			.addToggle((toggleElem) => {
+				toggleElem.setValue(this.#plugin.settings.saveConversation);
+				toggleElem.onChange(async (e) => {
+					const saveConversation = toggleElem.getValue();
+					this.#plugin.settings.saveConversation = saveConversation;
+					pathSetting.settingEl.toggleVisibility(saveConversation)
+					await this.#plugin.saveSettings();
 				})
 			})
 
 		pathSetting = new Obsidian.Setting(containerEl)
 			.setName("Path")
-			.addText(() => { });
+			.addText(text => text
+				.setPlaceholder('Enter path')
+				.setValue(this.#plugin.settings.saveConversationPath)
+				.onChange(async (value) => {
+					this.#plugin.settings.saveConversationPath = value;
+					await this.#plugin.saveSettings();
+				}));
+		pathSetting.settingEl.toggleVisibility(this.#plugin.settings.saveConversation);
 
 		const h2 = document.createElement("h1");
 		h2.innerHTML = "Presets";

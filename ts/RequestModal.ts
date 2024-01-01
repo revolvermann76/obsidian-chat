@@ -5,6 +5,7 @@ import { Modal, App, ButtonComponent, Notice } from "obsidian";
 import { getSelection } from "./getSelection";
 import { getFileName } from "./getFileName";
 import { ChatPluginSettings } from "main";
+import { saveConversation } from "./saveConversation";
 
 export class RequestModal extends Modal {
 
@@ -90,8 +91,13 @@ export class RequestModal extends Modal {
         })
 
         new ButtonComponent(buttonCnt).setButtonText("Copy Response").setClass("chat-copy-button").onClick(() => {
+            saveConversation(
+                [...this.#chat.conversation],
+                this.#settings.saveConversation,
+                this.#settings.saveConversationPath,
+                this.app
+            );
             const value = this.#chat.conversation.pop()?.content;
-            console.log(value);
             navigator.clipboard.writeText(value || "");
             this.#copiedToClipboard = true;
             this.close();
@@ -99,11 +105,16 @@ export class RequestModal extends Modal {
         })
 
         new ButtonComponent(buttonCnt).setButtonText("Copy Conversation").setClass("chat-copy-all-button").onClick(() => {
+            saveConversation(
+                [...this.#chat.conversation],
+                this.#settings.saveConversation,
+                this.#settings.saveConversationPath,
+                this.app
+            );
             let lines: string[] = [];
             const c = this.#chat.conversation;
             for (let i = 0; i < c.length; i++) {
                 const u: TUtterance = c[i];
-                console.log(u);
                 if (u.role === "assistant") {
                     lines.push(u.content);
                 } else if (u.role === "user") {
@@ -111,7 +122,6 @@ export class RequestModal extends Modal {
                 }
             }
             const value = lines.join("\n")
-            console.log(value);
             navigator.clipboard.writeText(value || "");
             this.#copiedToClipboard = true;
             this.close();
@@ -171,6 +181,12 @@ export class RequestModal extends Modal {
 
     onClose() {
         if (!this.#copiedToClipboard) {
+            saveConversation(
+                [...this.#chat.conversation],
+                this.#settings.saveConversation,
+                this.#settings.saveConversationPath,
+                this.app
+            );
             const value = this.#chat.conversation.pop()?.content;
             navigator.clipboard.writeText(value || "");
         }
