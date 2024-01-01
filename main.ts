@@ -6,11 +6,15 @@ import { MultiSuggest } from 'ts/MultiSuggest';
 export interface ChatPluginSettings {
 	apiKey: string;
 	presets: { [key: string]: TPreset };
+	saveCoversation: boolean;
+	saveConversationPath: string;
 }
 
 const DEFAULT_SETTINGS: ChatPluginSettings = {
 	apiKey: 'default',
-	presets: presets
+	presets: presets,
+	saveCoversation: false,
+	saveConversationPath: 'chats'
 }
 
 export default class ChatPlugin extends Obsidian.Plugin {
@@ -61,9 +65,10 @@ export class ChatSettingTab extends Obsidian.PluginSettingTab {
 		containerEl.empty();
 
 		const h1 = document.createElement("h1");
-		h1.innerHTML = "ChatGPT";
+		h1.innerHTML = "General settings";
 		containerEl.appendChild(h1);
 
+		let pathSetting: Obsidian.Setting;
 		new Obsidian.Setting(containerEl)
 			.setName('API Key')
 			.setDesc('')
@@ -76,6 +81,19 @@ export class ChatSettingTab extends Obsidian.PluginSettingTab {
 				})
 			);
 
+
+		new Obsidian.Setting(containerEl)
+			.setName('Save conversations')
+			.addToggle(function (toggleElem) {
+				toggleElem.onChange((e) => {
+					const saveConv = toggleElem.getValue();
+					pathSetting.settingEl.toggleVisibility(saveConv)
+				})
+			})
+
+		pathSetting = new Obsidian.Setting(containerEl)
+			.setName("Path")
+			.addText(() => { });
 
 		const h2 = document.createElement("h1");
 		h2.innerHTML = "Presets";
