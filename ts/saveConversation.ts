@@ -1,5 +1,6 @@
+import { ChatPluginSettings } from "main";
 import { App, TFile, TFolder } from "obsidian";
-import { TUtterance } from "ts/Chat";
+import { Chat, TUtterance } from "ts/Chat";
 const path = require('path');
 
 async function createFile(app: App, filePath: string, content: string) {
@@ -38,11 +39,31 @@ function removeNonLettersAndSpaces(str: string): string {
     return str.replace(/[^a-zA-ZäöüÄÖÜß\s]/g, '');
 }
 
-async function generateTitle(conversation: TUtterance[]): Promise<string> {
+async function generateTitle(conversation: TUtterance[], apiKey: string): Promise<string> {
 
-    let postFix = removeNonLettersAndSpaces(conversation[0].content.substring(0, 40));
+    let postFix = ""
 
-    return getCurrentDateTime() + " " + postFix;
+    try {
+        const nameFinderPromt = "Find a name for the following conversation. Extract the most important words from it. Your response must be shorter than six words. The conversation is: "
+
+        // flatten and shorten conversation
+        let flattenedConversation = "";
+        for (let i = 0; i < conversation.length; i++) {
+            flattenedConversation += conversation[i].role + ": \n" + conversation[i].content + "\n\n";
+        }
+        flattenedConversation = flattenedConversation.substring(0, 200);
+
+        let nameFinder = new Chat({
+            apiKey: apiKey
+        });
+        postFix = await nameFinder.stream(nameFinderPromt + flattenedConversation)
+    } catch (error) {
+
+    }
+
+    //let postFix = removeNonLettersAndSpaces(conversation[0].content.substring(0, 40));
+
+    return getCurrentDateTime() + " " + removeNonLettersAndSpaces(postFix);
 }
 
 function createContent(title: string, conversation: TUtterance[]): string {
@@ -58,15 +79,14 @@ function createContent(title: string, conversation: TUtterance[]): string {
 
 export async function saveConversation(
     conversation: TUtterance[],
-    saveConversation: boolean,
-    savePath: string,
-    app: App
+    settings: ChatPluginSettings,
+    app: App,
 ) {
-    if (!saveConversation || !conversation.length) {
+    if (!settings.saveConversation || !conversation.length) {
         return;
     }
-    const title = await generateTitle(conversation)
-    const fileName = path.join(savePath, title + ".md");
+    const title = await generateTitle(conversation, settings.apiKey);
+    const fileName = path.join(settings.saveConversationPath, title + ".md");
     createFile(app, fileName, createContent(title, conversation));
 }
 

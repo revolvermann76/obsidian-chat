@@ -93,8 +93,7 @@ export class RequestModal extends Modal {
         new ButtonComponent(buttonCnt).setButtonText("Copy Response").setClass("chat-copy-button").onClick(() => {
             saveConversation(
                 [...this.#chat.conversation],
-                this.#settings.saveConversation,
-                this.#settings.saveConversationPath,
+                this.#settings,
                 this.app
             );
             const value = this.#chat.conversation.pop()?.content;
@@ -107,8 +106,7 @@ export class RequestModal extends Modal {
         new ButtonComponent(buttonCnt).setButtonText("Copy Conversation").setClass("chat-copy-all-button").onClick(() => {
             saveConversation(
                 [...this.#chat.conversation],
-                this.#settings.saveConversation,
-                this.#settings.saveConversationPath,
+                this.#settings,
                 this.app
             );
             let lines: string[] = [];
@@ -183,8 +181,8 @@ export class RequestModal extends Modal {
         if (!this.#copiedToClipboard) {
             saveConversation(
                 [...this.#chat.conversation],
-                this.#settings.saveConversation,
-                this.#settings.saveConversationPath,
+                this.#settings,
+
                 this.app
             );
             const value = this.#chat.conversation.pop()?.content;
