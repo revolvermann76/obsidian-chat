@@ -58,10 +58,8 @@ async function generateTitle(conversation: TUtterance[], apiKey: string): Promis
         });
         postFix = await nameFinder.stream(nameFinderPromt + flattenedConversation)
     } catch (error) {
-
+        // do nothing
     }
-
-    //let postFix = removeNonLettersAndSpaces(conversation[0].content.substring(0, 40));
 
     return getCurrentDateTime() + " " + removeNonLettersAndSpaces(postFix);
 }

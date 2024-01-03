@@ -29,7 +29,11 @@ export default class ChatPlugin extends Obsidian.Plugin {
 			name: 'Request',
 			callback: () => {
 				new RequestModal(this.app, this.settings).open();
-			}
+			},
+			hotkeys: [{
+				key: "C",
+				modifiers: ['Ctrl', 'Alt']
+			}]
 		});
 
 
