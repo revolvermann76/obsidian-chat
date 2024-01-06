@@ -36,6 +36,14 @@ export default class ChatPlugin extends Obsidian.Plugin {
 			}]
 		});
 
+		// This creates an icon in the left ribbon.
+		const ribbonIconEl = this.addRibbonIcon('message-circle', 'Chat', (evt: MouseEvent) => {
+			// Called when the user clicks the icon.
+			new RequestModal(this.app, this.settings).open();
+		});
+		// Perform additional things with the ribbon
+		ribbonIconEl.addClass('my-plugin-ribbon-class');
+
 
 		// This adds a settings tab so the user can configure various aspects of the plugin
 		this.addSettingTab(new ChatSettingTab(this.app, this));
