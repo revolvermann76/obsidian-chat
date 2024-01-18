@@ -8,7 +8,8 @@ const copyPlugin = () => ({
 	setup(build) {
 		build.onEnd(async () => {
 			const pathIn = "./";
-			const pathOut = "/home/marc/zettelkasten/.obsidian/plugins/obsidian-chat/"
+			//const pathOut = "/home/marc/zettelkasten/.obsidian/plugins/obsidian-chat/";
+			const pathOut =	"D:/.obsidian/plugins/obsidian-chat/";
 			const files = [
 				"manifest.json",
 				"main.js",
@@ -19,7 +20,7 @@ const copyPlugin = () => ({
 					console.log(pathIn + files[i], pathOut + files[i]);
 					fs.copyFileSync(pathIn + files[i], pathOut + files[i]);
 				} catch (e) {
-					console.error('Failed to copy file:', e);
+					console.error('Failed to copy file:', files[i]);
 				}
 			}
 		});

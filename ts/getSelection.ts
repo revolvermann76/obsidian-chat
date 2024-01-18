@@ -1,13 +1,12 @@
 import { MarkdownView, App } from "obsidian";
 
-export async function getSelection(app: App) {
+export function getSelection(app: App) {
 
-    let view = app.workspace.getActiveViewOfType(MarkdownView);
-    let editor = view?.editor;
+    const view = app.workspace.getActiveViewOfType(MarkdownView);
+    const editor = view?.editor;
 
     if (editor) {
-        let selection = editor.getSelection();
-
+        const selection = editor.getSelection();
         if (selection) {
             return selection;
         } else {

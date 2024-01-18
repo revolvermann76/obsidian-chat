@@ -1,7 +1,7 @@
 import { Chat, TUtterance } from "ts/Chat";
 import { MultiSuggest } from "./MultiSuggest";
 import { md2html } from "./md2html";
-import { Modal, App, ButtonComponent, Notice } from "obsidian";
+import { Modal, App, ButtonComponent, Notice, MarkdownView } from "obsidian";
 import { getSelection } from "./getSelection";
 import { getFileName } from "./getFileName";
 import { ChatPluginSettings } from "main";
@@ -17,6 +17,7 @@ export class RequestModal extends Modal {
     #selection: string;
     #fileName: string;
     #settings: ChatPluginSettings
+    #fileContent: string;
 
     constructor(app: App, settings: ChatPluginSettings) {
         super(app);
@@ -27,16 +28,20 @@ export class RequestModal extends Modal {
             system: "Be a helpful assistent.",
             temperature: 0.3
         })
-
-        try {
-            getSelection(app).then((s) => {
-                if (s) {
-                    this.#selection = s;
-                }
-            })
+        try{
+            this.#selection = getSelection(app)
         } catch (error) {
             // console.error(error)
         }
+
+        try {
+                const view = this.app.workspace.getActiveViewOfType(MarkdownView);
+				const editor = view?.editor;
+                this.#fileContent = editor?.getValue() as string;
+        } catch (error) {
+            // console.error(error)
+        }
+
 
         this.#fileName = getFileName(app);
 
@@ -52,15 +57,15 @@ export class RequestModal extends Modal {
         this.contentEl.appendChild(this.#promptInput);
 
         // Placeholder
-        const placeholderList = ["filename", "selection"]
+        const placeholderList = ["filename", "selection", "note"]
         const placeholder = document.createElement("div");
         placeholder.addClass('placeholder');
         for (let i = 0; i < placeholderList.length; i++) {
-            let span = document.createElement("span");
+            const span = document.createElement("span");
             span.innerHTML = placeholderList[i];
 
             span.addEventListener("click", (e) => {
-                let ph = (e.target! as HTMLElement).getText();
+                const ph = (e.target! as HTMLElement).getText();
                 this.#promptInput.value = this.#promptInput.value + " {" + ph + "} ";
                 this.#promptInput.focus();
             })
@@ -109,7 +114,7 @@ export class RequestModal extends Modal {
                 this.#settings,
                 this.app
             );
-            let lines: string[] = [];
+            const lines: string[] = [];
             const c = this.#chat.conversation;
             for (let i = 0; i < c.length; i++) {
                 const u: TUtterance = c[i];
@@ -136,7 +141,7 @@ export class RequestModal extends Modal {
         this.#promptInput.value = "";
 
         if (list && this.#settings.presets[prompt]) {
-            let preset = this.#settings.presets[prompt];
+            const preset = this.#settings.presets[prompt];
             this.#chat = new Chat({
                 temperature: preset.temperature || 0.5,
                 apiKey: this.#settings.apiKey,
@@ -157,20 +162,31 @@ export class RequestModal extends Modal {
         responseDiv.addClass("response");
         this.#resultCnt.appendChild(responseDiv);
 
-        this.#chat.stream(prompt.replaceAll("{selection}", this.#selection).replaceAll("{filename}", this.#fileName), {
-            partHandler: (part) => {
-                responseDiv.innerHTML = md2html(part);
-                this.#scrollDown();
-            }
-        }).then((result) => {
-            responseDiv.innerHTML = md2html(result);
-            this.#scrollDown();
-            this.#promptInput.focus();
-        }, (error: Error) => {
-            responseDiv.innerHTML = error.message;
-            this.#scrollDown();
-            this.#promptInput.focus();
-        })
+        this.#chat
+			.stream(
+				prompt
+					.replaceAll("{selection}", this.#selection)
+					.replaceAll("{filename}", this.#fileName)
+					.replaceAll("{note}", "```\n"+this.#fileContent+"\n```\n"),
+				{
+					partHandler: (part) => {
+						responseDiv.innerHTML = md2html(part);
+						this.#scrollDown();
+					},
+				}
+			)
+			.then(
+				(result) => {
+					responseDiv.innerHTML = md2html(result);
+					this.#scrollDown();
+					this.#promptInput.focus();
+				},
+				(error: Error) => {
+					responseDiv.innerHTML = error.message;
+					this.#scrollDown();
+					this.#promptInput.focus();
+				}
+			);
     }
 
     onOpen() {
